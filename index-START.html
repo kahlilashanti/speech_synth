@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Speech Synthesis</title>
+  <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="voiceinator">
+
+      <h1>The VoiceChicken 8500</h1>
+
+      <select name="voice" id="voices">
+        <option value="">Select A Voice</option>
+      </select>
+
+      <label for="rate">Rate:</label>
+      <input name="rate" type="range" min="0" max="3" value="1" step="0.1">
+
+      <label for="pitch">Pitch:</label>
+
+      <input name="pitch" type="range" min="0" max="2" step="0.1">
+      <textarea name="text">Somebody bring me some toilet paper. Now. 👍</textarea>
+      <button id="stop">Stop!</button>
+      <button id="speak">Speak</button>
+
+    </div>
+
+<script>
+  const msg = new SpeechSynthesisUtterance();
+  let voices = [];
+  const voicesDropdown = document.querySelector('[name="voice"]');
+  const options = document.querySelectorAll('[type="range"], [name="text"]');
+  const speakButton = document.querySelector('#speak');
+  const stopButton = document.querySelector('#stop');
+  msg.text = document.querySelector('[name="text"]').value;
+
+  function populateVoices(){
+    voices = this.getVoices();
+    // console.log(voices) this is to see all the different choices of voices
+    //loop over all the voices we see in the consele and set them as options in our dropdown
+    voicesDropdown.innerHTML = voices
+    //if we want to filter for only the English speaking voices we add a filter
+    .filter(voice => voice.lang.includes('en'))
+    .map(voice => `<option value="${voice.name}">${voice.name} (${voice.lang})</option>`)
+    .join('');
+
+  }
+
+  //we want to be able to choose one of the voices because the default one is Alex
+  function setVoice(){
+    msg.voice = voices.find(voice => voice.name === this.value);
+    toggle();
+    // console.log(this.value); this tells us which voice it is but doesn't play it when we select from dropdown
+    //we need to find the corrsponding voice object so that we can hear the voice when we eelect it
+  }
+
+  //we want a function that's going to restart this every time we change one of these
+  function toggle(startOver = true){
+    speechSynthesis.cancel();
+    if (startOver){
+      speechSynthesis.speak(msg);
+    }
+  }
+
+  function setOption(){
+    // console.log(this.name, this.value);
+    msg[this.name] = this.value;
+    toggle();
+  }
+
+  speechSynthesis.addEventListener('voiceschanged', populateVoices);
+  voicesDropdown.addEventListener('change', setVoice);
+  options.forEach(option => option.addEventListener('change', setOption));
+  speakButton.addEventListener('click', toggle);
+  //how do we pass a function to the listenter for the false value for the stop button?
+  //like this
+  //stopButton.addEventListener('click', toggle.bind(null, false));
+  //or
+  // stopButton.addEventListener('click', function(){
+  //   toggle(false);
+  // });
+  //or (this is more popular in React)
+  stopButton.addEventListener('click', () => toggle(false));
+
+
+</script>
+
+</body>
+</html>
